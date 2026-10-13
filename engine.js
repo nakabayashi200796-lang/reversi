@@ -173,6 +173,71 @@ function evaluate(pl, ph, ol, oh) {
   return Math.round(s * 4) / 4;
 }
 
+/* ---------- 学んだ点数表による見立て（神が使う） ----------
+   eval.bin に、盤の形（端の列・角の周り・斜めの列など）ごとの「並び→点数」の表が段階別に入っている。
+   src\train\train.py が Edax の採点を手本に作る */
+let PAT = null;
+const PST = new Int8Array(64);
+function loadEval(buf) {
+  const dv = new DataView(buf instanceof ArrayBuffer ? buf : buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength));
+  const tag = String.fromCharCode(dv.getUint8(0), dv.getUint8(1), dv.getUint8(2), dv.getUint8(3));
+  if (tag !== 'RVE1') throw new Error('eval.bin の形式が違う');
+  let o = 4;
+  const nph = dv.getInt32(o, true); o += 4;
+  const nt = dv.getInt32(o, true); o += 4;
+  const scale = dv.getInt32(o, true); o += 4;
+  const sq = [], len = [], typ = [], tsize = [];
+  for (let t = 0; t < nt; t++) {
+    const n = dv.getInt32(o, true), k = dv.getInt32(o + 4, true); o += 8;
+    tsize.push(Math.pow(3, n));
+    for (let i = 0; i < k; i++) { for (let j = 0; j < n; j++) sq.push(dv.getUint8(o++)); len.push(n); typ.push(t); }
+  }
+  // 段階ごとに、全部の表を1本の配列に並べる（形 t の表は toff[t] から）
+  const toff = [];
+  let tot = 0;
+  for (let t = 0; t < nt; t++) { toff.push(tot); tot += tsize[t]; }
+  const tabs = [], bias = [];
+  for (let ph = 0; ph < nph; ph++) {
+    const tab = new Int16Array(tot);
+    for (let t = 0; t < nt; t++) {
+      for (let i = 0; i < tsize[t]; i++) { tab[toff[t] + i] = dv.getInt16(o, true); o += 2; }
+    }
+    tabs.push(tab);
+    bias.push(dv.getInt16(o, true)); o += 2;
+  }
+  const ioff = new Int32Array(typ.length);
+  for (let i = 0; i < typ.length; i++) ioff[i] = toff[typ[i]];
+  PAT = { nph, scale, sq: Int8Array.from(sq), len: Int8Array.from(len), ioff, tabs, bias, n: typ.length };
+  return PAT;
+}
+function evaluateP(pl, ph, ol, oh) {
+  PST.fill(0);
+  let x;
+  x = pl; while (x) { const b = x & -x; PST[31 - Math.clz32(b)] = 1; x ^= b; }
+  x = ph; while (x) { const b = x & -x; PST[63 - Math.clz32(b)] = 1; x ^= b; }
+  x = ol; while (x) { const b = x & -x; PST[31 - Math.clz32(b)] = 2; x ^= b; }
+  x = oh; while (x) { const b = x & -x; PST[63 - Math.clz32(b)] = 2; x ^= b; }
+  const empties = 64 - pc(pl) - pc(ph) - pc(ol) - pc(oh);
+  let phs = Math.floor((59 - empties) / 5);
+  if (phs < 0) phs = 0; else if (phs >= PAT.nph) phs = PAT.nph - 1;
+  const tab = PAT.tabs[phs], sqs = PAT.sq, lens = PAT.len, ioff = PAT.ioff;
+  let s = PAT.bias[phs], k = 0;
+  for (let i = 0, n = PAT.n; i < n; i++) {
+    let idx = 0;
+    for (let j = lens[i]; j > 0; j--) idx = idx * 3 + PST[sqs[k++]];
+    s += tab[ioff[i] + idx];
+  }
+  return Math.round(s / PAT.scale * 4) / 4;
+}
+let EVAL = evaluate;
+let evalMode = 'hand';
+function useEval(mode) {
+  const m = mode === 'pattern' && PAT ? 'pattern' : 'hand';
+  if (m !== evalMode) { ttClear(); evalMode = m; }   // 見立てが変わったら、前の見立てで読んだメモは捨てる
+  EVAL = m === 'pattern' ? evaluateP : evaluate;
+  return m;
+}
+
 /* ---------- 読み ---------- */
 const WIN = 1000;               // 勝ち負けが読み切れたときは見立てより必ず大きくする
 const INF = 100000;
@@ -229,7 +294,7 @@ for (let i = 0; i < 96; i++) { MOVEBUF.push(new Int8Array(32)); KEYBUF.push(new 
 
 function search(pl, ph, ol, oh, depth, alpha, beta, passed, ply) {
   if ((++nodes & 2047) === 0 && Date.now() > deadline) throw ABORT;
-  if (depth <= 0) return evaluate(pl, ph, ol, oh);
+  if (depth <= 0) return EVAL(pl, ph, ol, oh);
 
   genMoves(pl, ph, ol, oh);
   let ml = ML, mh = MH;
@@ -502,7 +567,8 @@ const LEVELS = [
   { name: '達人', depth: 3, end: 8, time: 3000, noise: 3 },
   { name: '竜王', depth: 5, end: 12, time: 5000, noise: 1.5 },
   { name: '鬼神', depth: 7, end: 16, time: 6000, noise: 0 },
-  { name: "神", depth: 30, end: 20, time: 2500, endTime: 6500, wldTime: 3500, noise: 0 },
+  { name: "覇王", depth: 30, end: 20, time: 2500, endTime: 6500, wldTime: 3500, noise: 0 },
+  { name: "神", depth: 40, end: 22, time: 5000, endTime: 10000, wldTime: 5500, noise: 0, pattern: true, endMid: 1000 },
 ];
 
 const TABLE = [
@@ -529,6 +595,7 @@ function think(pl, ph, ol, oh, lv, opts) {
   if (!moves.length) return { move: -1 };
   if (moves.length === 1) return { move: moves[0], forced: true };
   const L = LEVELS[lv];
+  const mode = useEval(L.pattern ? 'pattern' : 'hand');
 
   if (L.kind === 'random') return { move: pick(moves) };
   if (L.kind === 'greedy') {
@@ -567,7 +634,7 @@ function think(pl, ph, ol, oh, lv, opts) {
 
   // 中盤：浅い深さから順に読み、時間切れなら最後に読み終えた深さの手を使う
   const maxDepth = Math.min(L.depth, empties);
-  const midTime = empties <= L.end ? Math.min(L.time, 500) : L.time;
+  const midTime = empties <= L.end ? Math.min(L.time, L.endMid || 500) : L.time;
   deadline = t0 + midTime;
   try {
     for (let d = 1; d <= maxDepth; d++) {
@@ -576,7 +643,7 @@ function think(pl, ph, ol, oh, lv, opts) {
       res = r; depthDone = d;
       order = sortByScores(order, r.scores);
       if (Math.abs(r.score) >= WIN - 64 && d >= 4) break;    // 勝ち負けが見えたら終わり
-      if (lv === 7 && Date.now() - t0 > midTime * 0.45) break; // 次の深さは時間内に終わらない見込み
+      if (lv >= 7 && Date.now() - t0 > midTime * 0.45) break; // 次の深さは時間内に終わらない見込み
     }
   } catch (e) { if (e !== ABORT) throw e; }
   deadline = Infinity;
@@ -607,7 +674,7 @@ function think(pl, ph, ol, oh, lv, opts) {
     }
     deadline = Infinity;
   }
-  res.depth = depthDone; res.nodes = nodes; res.ms = Date.now() - t0;
+  res.depth = depthDone; res.nodes = nodes; res.ms = Date.now() - t0; res.eval = mode;
   return res;
 }
 
@@ -680,12 +747,15 @@ function flipsOf(sq, pl, ph, ol, oh) {
   return out;
 }
 
-const Engine = { setOrderSearch(v) { ORDER_SEARCH = v; }, scoreMoves, pc, genMoves, movesOf, flipsOf, applyMove, think, analyzePosition, evaluate, finalScore, solve, search, LEVELS, START, W, ttClear, etClear, get nodes() { return nodes; } };
+const Engine = { setOrderSearch(v) { ORDER_SEARCH = v; }, loadEval, useEval, evaluateP, get hasPattern() { return !!PAT; }, scoreMoves, pc, genMoves, movesOf, flipsOf, applyMove, think, analyzePosition, evaluate, finalScore, solve, search, LEVELS, START, W, ttClear, etClear, get nodes() { return nodes; } };
 
 /* ---------- Worker として動いているときの受け口 ---------- */
 if (typeof WorkerGlobalScope !== 'undefined' && self instanceof WorkerGlobalScope) {
-  self.onmessage = (ev) => {
+  // 神の点数表は起動したらすぐ読み込みはじめる。読み終わる前に神の番が来たら待つ
+  const evalReady = fetch('eval.bin').then(r => (r.ok ? r.arrayBuffer() : null)).then(b => { if (b) loadEval(b); }).catch(() => {});
+  self.onmessage = async (ev) => {
     const m = ev.data;
+    if ((m.cmd === 'think' && LEVELS[m.level] && LEVELS[m.level].pattern) || m.cmd === 'analyze') await evalReady;
     if (m.cmd === 'think') {
       const [pl, ph, ol, oh] = m.board;
       const r = think(pl, ph, ol, oh, m.level);
@@ -693,6 +763,7 @@ if (typeof WorkerGlobalScope !== 'undefined' && self instanceof WorkerGlobalScop
     } else if (m.cmd === 'analyze') {
       // m.positions: [{p:[pl,ph,ol,oh]}...]（それぞれの手番側から見た盤）
       const out = [];
+      useEval('pattern');     // 振り返りは、いちばん良い見立てで調べる
       for (let i = 0; i < m.positions.length; i++) {
         out.push(analyzePosition(...m.positions[i]));
         self.postMessage({ id: m.id, cmd: 'progress', done: i + 1, total: m.positions.length });
