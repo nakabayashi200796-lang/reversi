@@ -1,6 +1,6 @@
 /* リバーシ — 電波が無くても開けるようにするための小さな仕掛け */
-const V = "roulette-v2";
-const SHELL = ["./", "./index.html", "./manifest.webmanifest", "./engine.js", "./icon-32.png", "./icon-180.png", "./icon-192.png", "./icon-512.png"];
+const V = "reversi-v2";
+const SHELL = ["./", "./index.html", "./manifest.webmanifest", "./engine.js", "./lessons.js", "./icon-32.png", "./icon-180.png", "./icon-192.png", "./icon-512.png"];
 
 self.addEventListener("install", e => {
   self.skipWaiting();
@@ -10,7 +10,7 @@ self.addEventListener("install", e => {
 self.addEventListener("activate", e => {
   e.waitUntil(
     caches.keys()
-      .then(ks => Promise.all(ks.filter(k => k !== V).map(k => caches.delete(k))))
+      .then(ks => Promise.all(ks.filter(k => k.startsWith("reversi-") && k !== V).map(k => caches.delete(k))))
       .then(() => self.clients.claim())
   );
 });

@@ -287,6 +287,58 @@ body[data-tier="5"] .frame, body[data-tier="6"] .frame, body[data-tier="7"] .fra
 .steps .btn { min-height: 44px; font-size: .9rem; }
 .progress { width: min(100%, var(--bs)); text-align: center; color: var(--muted); font-size: .9rem; padding: 6px; }
 
+/* ---------- 講座 ---------- */
+.course-entry {
+  display: grid; grid-template-columns: 34px 1fr auto; align-items: center; gap: 12px; width: 100%; text-align: left;
+  min-height: 62px; padding: 8px 14px 8px 12px; margin-top: 8px; border-radius: 12px;
+  border: 1px dashed color-mix(in srgb, var(--accent) 55%, transparent); background: rgba(0,0,0,.22);
+}
+.course-entry svg { width: 26px; height: 26px; color: var(--accent); justify-self: center; }
+.course-entry .nm { font-family: var(--mincho); font-weight: 800; font-size: 1.2rem; letter-spacing: .06em; }
+.course-entry .ds { display: block; font-size: .78rem; color: var(--muted); margin-top: 3px; }
+.course-entry .rec { font-size: .78rem; color: var(--muted); white-space: nowrap; }
+.chapters { flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; }
+.chap {
+  display: grid; grid-template-columns: 30px 1fr auto; align-items: center; gap: 12px; width: 100%; text-align: left;
+  min-height: 58px; padding: 8px 14px 8px 12px; border-radius: 12px; border: 1px solid rgba(255,255,255,.08); background: rgba(0,0,0,.26);
+}
+.chap .no { font-family: var(--mincho); font-weight: 800; color: var(--muted); text-align: center; font-size: 1.05rem; }
+.chap .nm { font-family: var(--mincho); font-weight: 800; font-size: 1.12rem; }
+.chap .ds { display: block; font-size: .76rem; color: var(--muted); margin-top: 2px; }
+.chap .done { font-size: .78rem; font-weight: 700; color: #1b1406; background: var(--accent); border-radius: 6px; padding: 2px 8px; }
+.lesson {
+  --bs: var(--ls, 320px);
+  height: 100%; display: flex; flex-direction: column; align-items: center; gap: 8px;
+  padding: calc(env(safe-area-inset-top, 0px) + 6px) 6px calc(env(safe-area-inset-bottom, 0px) + 8px);
+}
+.lesson .bar, .lesson .ltext, .lesson .lbtns { width: min(100%, max(var(--bs), 300px)); }
+.lesson .side { display: contents; }
+.lesson .bar { order: 0; }
+.lesson .frame { order: 1; }
+.lesson .ltext { order: 2; }
+.lesson .lbtns { order: 3; margin-bottom: auto; }
+.lesson.land { flex-direction: row; justify-content: center; gap: 14px; }
+.lesson.land .side { display: flex; flex-direction: column; gap: 8px; width: min(340px, 42vw); align-self: stretch; justify-content: center; }
+.lesson.land .side > * { width: 100%; }
+.lesson .bar .ttl { text-align: center; line-height: 1.15; }
+.lesson .bar .ttl small { display: block; font-size: .72rem; color: var(--muted); }
+.lesson .bar .ttl b { font-family: var(--mincho); font-weight: 800; font-size: 1.1rem; letter-spacing: .06em; }
+.ltext { min-height: 7.6em; padding: 10px 14px; border-radius: 12px; background: rgba(0,0,0,.32); font-size: .98rem; line-height: 1.7; }
+.ltext .ok { color: #7fe0a4; font-weight: 700; }
+.ltext .ng { color: #ff8a7a; font-weight: 700; }
+.ltext .sub { display: block; color: var(--muted); font-size: .88rem; margin-top: 2px; }
+.lbtns { display: flex; gap: 8px; }
+.ring { position: absolute; width: 86%; height: 86%; border-radius: 50%; z-index: 4; pointer-events: none; }
+.ring.good { border: 3px solid #4fdc8c; box-shadow: 0 0 10px rgba(79, 220, 140, .8); }
+.ring.bad { border: 3px solid #ff5a4a; box-shadow: 0 0 10px rgba(255, 90, 74, .8); }
+.ring.mark { border: 3px solid #ffd76a; box-shadow: 0 0 10px rgba(255, 215, 106, .8); }
+.ring.pulse { animation: ringp 1.1s ease-in-out infinite alternate; }
+@keyframes ringp { from { transform: scale(.9); opacity: .7; } to { transform: scale(1.02); opacity: 1; } }
+.lab { position: absolute; z-index: 3; font-weight: 700; font-size: calc(var(--bs) * .045); color: rgba(255,255,255,.85); pointer-events: none; }
+.cell.nope { animation: nope .3s; }
+@keyframes nope { 0%, 100% { background: transparent; } 40% { background: rgba(255, 70, 60, .35); } }
+.chapter-link { display: block; margin-top: 6px; width: 100%; min-height: 40px; border-radius: 10px; border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent); background: rgba(255,255,255,.05); font-size: .85rem; font-weight: 700; color: var(--accent); }
+
 @media (prefers-reduced-motion: reduce) {
   .fx .rays, .fx .ember, .fx .wisp, .frame { animation: none !important; }
 }
@@ -365,9 +417,42 @@ body[data-tier="5"] .frame, body[data-tier="6"] .frame, body[data-tier="7"] .fra
   </div>
 </section>
 
+<!-- 講座の目次 -->
+<section class="screen" id="course" hidden>
+  <div class="home">
+    <div class="bar">
+      <button class="icon-btn" id="courseBack" aria-label="相手選びに戻る">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>
+      </button>
+      <div class="brand"><h1 style="font-size:1.35rem">リバーシ講座</h1></div>
+      <span style="width:44px"></span>
+    </div>
+    <div class="chapters" id="chapters"></div>
+  </div>
+</section>
+
+<!-- 講座の1章 -->
+<section class="screen" id="lesson" hidden>
+  <div class="lesson" id="lessonBox">
+    <div class="side">
+      <div class="bar">
+        <button class="icon-btn" id="lessonBack" aria-label="目次に戻る">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>
+        </button>
+        <div class="ttl"><small id="lessonStep"></small><b id="lessonTitle"></b></div>
+        <button class="icon-btn sound-btn" aria-label="音" aria-pressed="true"></button>
+      </div>
+      <div class="ltext" id="lessonText" aria-live="polite"></div>
+      <div class="lbtns" id="lessonBtns"></div>
+    </div>
+    <div class="frame" id="lessonFrame"><div class="board" id="lessonBoard"></div></div>
+  </div>
+</section>
+
 <div id="layer"></div>
 
 <script src="engine.js"></script>
+<script src="lessons.js"></script>
 <script>
 'use strict';
 const E = self.Engine;
@@ -511,6 +596,15 @@ function fit() {
   }
   bs = Math.max(240, Math.floor(bs));
   document.documentElement.style.setProperty('--bs', bs + 'px');
+  // 講座の盤は、下に説明とボタンが入るぶん小さめ
+  let ls;
+  if (land) ls = bs;
+  else {
+    const bar = $('#lessonBox .bar').offsetHeight || 46;
+    ls = Math.min(W - 12, H - bar - 132 - 48 - 8 * 3 - 14 - safe('top') - safe('bottom'));
+  }
+  document.documentElement.style.setProperty('--ls', Math.max(220, Math.floor(ls)) + 'px');
+  $('#lessonBox').classList.toggle('land', land);
   $('#gameBox').classList.toggle('land', land);
   $('#reviewBox').classList.toggle('land', land);
   if (!$('#review').hidden) drawGraph();
@@ -600,7 +694,7 @@ function replay(moves) {
 }
 
 function showScreen(id) {
-  for (const s of ['home', 'game', 'review']) $('#' + s).hidden = s !== id;
+  for (const s of ['home', 'game', 'review', 'course', 'lesson']) $('#' + s).hidden = s !== id;
   requestAnimationFrame(fit);
 }
 
@@ -815,6 +909,7 @@ function renderHome() {
     b.addEventListener('click', () => { audio(); store.del(K_SAVE); startGame(lv); });
     lad.appendChild(b);
   }
+  lad.appendChild(courseEntry());
   const sv = store.get(K_SAVE, null);
   const box = $('#resume');
   if (sv && sv.moves && sv.moves.length && LV[sv.lv]) {
@@ -916,6 +1011,16 @@ function showStep(k) {
     if (best >= 0 && best !== R.moves[i]) s += `。金の輪はAIのおすすめ（${sqName(best)}）`;
     body.textContent = s;
     info.append(head, body);
+    if (human && g && g[1] !== 'good') {
+      const ch = chapterFor(i);
+      const C = ch && LESSONS.find(c => c.id === ch);
+      if (C) {
+        const b = document.createElement('button'); b.className = 'chapter-link';
+        b.textContent = `${C.id}章「${C.title}」を見直す`;
+        b.addEventListener('click', () => openLesson(C.id, 'review'));
+        info.appendChild(b);
+      }
+    }
   }
   drawGraph();
 }
@@ -980,6 +1085,298 @@ $('#revBack').addEventListener('click', () => {
     if (a.dataset.a === 'again') startGame(R.lv); else goHome();
   });
 });
+
+/* ---------- 講座 ---------- */
+const LESSONS = self.LESSONS || [];
+const K_LES = 'reversi.v1.lessons';
+let lessonDone = store.get(K_LES, {});
+const BOOK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5.5C5.5 4 8.5 4 12 6c3.5-2 6.5-2 9-.5V19c-2.5-1.5-5.5-1.5-9 .5-3.5-2-6.5-2-9-.5z"/><path d="M12 6v13.5"/></svg>';
+const CH_DS = { 1: 'はさんで返す・パス・勝ち負け', 2: '角の石は二度と返されない', 3: 'XとCに打つと角を取られる', 4: '序盤・中盤は少なく返す', 5: '相手の打てる場所を減らす', 6: '外側に石を並べない', 7: '辺に打つ前に相手の次を見る', 8: '最後は打つ順番で石差が変わる' };
+
+function courseEntry() {
+  const n = LESSONS.filter(c => lessonDone[c.id]).length;
+  const b = document.createElement('button');
+  b.className = 'course-entry';
+  b.innerHTML = `${BOOK}<span><span class="nm">リバーシ講座</span><span class="ds">全${LESSONS.length}章。説明を読んで、盤の問題を解く</span></span><span class="rec">${n ? n + '章 済' : 'はじめから'}</span>`;
+  b.addEventListener('click', () => { audio(); openCourse(); });
+  return b;
+}
+function openCourse() {
+  setTier(1);
+  showScreen('course');
+  const box = $('#chapters'); box.innerHTML = '';
+  for (const c of LESSONS) {
+    const b = document.createElement('button'); b.className = 'chap';
+    b.innerHTML = `<span class="no">${c.id}</span><span><span class="nm"></span><span class="ds"></span></span>${lessonDone[c.id] ? '<span class="done">済</span>' : '<span></span>'}`;
+    b.querySelector('.nm').textContent = c.title;
+    b.querySelector('.ds').textContent = CH_DS[c.id] || '';
+    b.addEventListener('click', () => { audio(); openLesson(c.id, 'course'); });
+    box.appendChild(b);
+  }
+}
+$('#courseBack').addEventListener('click', goHome);
+
+const lessonBoardEl = $('#lessonBoard');
+buildBoard(lessonBoardEl);
+// b: 黒（学ぶ人）から見た盤。step: 何枚目か（説明→問題の順）
+const L = { ch: null, step: 0, b: null, token: 0, from: 'course', mode: '' };
+function strBits(str) {
+  let pl = 0, ph = 0, ol = 0, oh = 0;
+  for (let i = 0; i < 64; i++) {
+    if (str[i] === 'X') { if (i < 32) pl |= 1 << i; else ph |= 1 << (i - 32); }
+    else if (str[i] === 'O') { if (i < 32) ol |= 1 << i; else oh |= 1 << (i - 32); }
+  }
+  return [pl, ph, ol, oh];
+}
+function lessonPaint() {
+  const [pl, ph, ol, oh] = L.b;
+  paintDiscs(lessonBoardEl, pl, ph, ol, oh);
+  for (let i = 0; i < 64; i++) {
+    const c = lessonBoardEl.children[i];
+    c.classList.remove('last', 'hint', 'can');
+    c.querySelectorAll('.ring, .lab').forEach(x => x.remove());
+  }
+}
+function ring(sq, kind, pulse) {
+  const r = document.createElement('span'); r.className = 'ring ' + kind + (pulse ? ' pulse' : '');
+  lessonBoardEl.children[sq].appendChild(r);
+}
+function label(sq, text) {
+  const t = document.createElement('span'); t.className = 'lab'; t.textContent = text;
+  lessonBoardEl.children[sq].appendChild(t);
+}
+function setHints() {
+  const can = E.movesOf(...L.b);
+  for (let i = 0; i < 64; i++) {
+    const c = lessonBoardEl.children[i];
+    c.classList.toggle('can', can.includes(i));
+    c.classList.toggle('hint', can.includes(i) && settings.hints);
+  }
+}
+// 盤の上で1手打って見せる。black=true なら黒が打つ。打ち終わったら true（途中で画面が変わったら false）
+function lessonMove(sq, black) {
+  const tk = L.token;
+  return new Promise(res => {
+    const side = black ? L.b : [L.b[2], L.b[3], L.b[0], L.b[1]];
+    const flips = E.flipsOf(sq, ...side);
+    const nb = E.applyMove(...side, sq);
+    L.b = black ? nb : [nb[2], nb[3], nb[0], nb[1]];
+    const cells = lessonBoardEl.children, color = black ? 'b' : 'w';
+    for (let i = 0; i < 64; i++) cells[i].classList.remove('hint', 'can', 'last');
+    const pd = cells[sq].firstChild; pd.hidden = false; pd.className = 'disc ' + color + ' drop';
+    cells[sq].classList.add('last');
+    SFX.place();
+    let maxT = 0;
+    const r0 = sq >> 3, c0 = sq & 7;
+    for (const f of flips) {
+      const t = 110 + (Math.max(Math.abs((f >> 3) - r0), Math.abs((f & 7) - c0)) - 1) * 70;
+      maxT = Math.max(maxT, t);
+      setTimeout(() => {
+        if (tk !== L.token) return;
+        const dd = cells[f].firstChild;
+        dd.classList.remove('flip'); void dd.offsetWidth; dd.classList.add('flip'); SFX.flip();
+        setTimeout(() => { if (tk === L.token) { dd.classList.remove('b', 'w'); dd.classList.add(color); } }, 170);
+      }, t);
+    }
+    setTimeout(() => res(tk === L.token), maxT + 380);
+  });
+}
+const wait = (ms) => new Promise(r => setTimeout(r, ms));
+function esc(s) { return String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
+const fmtD = (v) => (v > 0 ? '+' : '') + v;
+const isCornerSq = (s) => s === 0 || s === 7 || s === 56 || s === 63;
+
+function openLesson(id, from) {
+  L.ch = LESSONS.find(c => c.id === id); L.step = 0; L.from = from || 'course';
+  setTier(1);
+  showScreen('lesson');
+  $('#lessonTitle').textContent = `${L.ch.id}章　${L.ch.title}`;
+  lessonShow();
+}
+function lessonTotal() { return L.ch.pages.length + L.ch.problems.length; }
+function setText(html) { $('#lessonText').innerHTML = html; }
+function setBtns(list) {
+  const box = $('#lessonBtns'); box.innerHTML = '';
+  for (const [text, fn, main] of list) {
+    const b = document.createElement('button'); b.className = 'btn' + (main ? ' main' : ''); b.textContent = text;
+    b.addEventListener('click', fn); box.appendChild(b);
+  }
+}
+function lessonShow() {
+  L.token++;
+  const np = L.ch.pages.length;
+  if (L.step < np) showPage(L.ch.pages[L.step]);
+  else showProblem(L.ch.problems[L.step - np]);
+  $('#lessonStep').textContent = L.step < np ? `説明 ${L.step + 1} / ${np}` : `問題 ${L.step - np + 1} / ${L.ch.problems.length}`;
+}
+function lessonNext() {
+  L.step++;
+  if (L.step >= lessonTotal()) { lessonFinish(); return; }
+  lessonShow();
+}
+
+function showPage(pg) {
+  L.b = strBits(pg.b); L.mode = 'page';
+  lessonPaint();
+  const marks = () => {
+    (pg.mark || []).forEach(s => ring(s, 'mark'));
+    (pg.good || []).forEach(s => ring(s, 'good'));
+    (pg.bad || []).forEach(s => ring(s, 'bad'));
+    for (const [k, v] of Object.entries(pg.labels || {})) label(+k, v);
+  };
+  marks();
+  setText(esc(pg.text));
+  const btns = [];
+  const play = async () => {
+    L.token++;
+    L.b = strBits(pg.b); lessonPaint(); marks();
+    const tk = L.token;
+    await wait(500);
+    let black = true;
+    for (const m of pg.demo) {
+      if (tk !== L.token) return;
+      if (!(await lessonMove(m, black))) return;
+      await wait(350);
+      black = !black;
+    }
+  };
+  if (pg.demo && pg.demo.length) btns.push(['もう一度見る', play]);
+  btns.push(['次へ', lessonNext, true]);
+  setBtns(btns);
+  if (pg.demo && pg.demo.length) play();
+}
+
+function showProblem(p) {
+  L.p = p; L.b = strBits(p.b); L.mode = 'ask';
+  lessonPaint(); setHints();
+  setText(`${esc(p.q)}<span class="sub">${settings.hints ? '点のある所が、黒の打てる場所です。' : '黒の番です。'}</span>`);
+  setBtns([]);
+}
+
+lessonBoardEl.addEventListener('click', async (ev) => {
+  const c = ev.target.closest('.cell'); if (!c || L.mode !== 'ask') return;
+  const sq = +c.dataset.i, p = L.p;
+  if (!E.movesOf(...L.b).includes(sq)) {
+    c.classList.remove('nope'); void c.offsetWidth; c.classList.add('nope');
+    setText(`そこには打てません。白の石をはさめる場所にだけ打てます。<span class="sub">${esc(p.q)}</span>`);
+    return;
+  }
+  audio();
+  L.mode = 'busy';
+  const right = p.ans.includes(sq);
+  const info = p.mv[sq] || {};
+  if (p.kind === 'legal') {
+    await lessonMove(sq, true);
+    setText('<span class="ok">正解！</span> 白をはさんで、ひっくり返せました。<span class="sub">ほかに打てた場所は、緑の輪の所です。</span>');
+    lessonPaintKeep(() => p.ans.filter(x => x !== sq).forEach(x => ring(x, 'good')));
+    afterAnswer(true);
+    return;
+  }
+  if (p.kind === 'flips') {
+    const most = p.mv[p.ans[0]].flips;
+    await lessonMove(sq, true);
+    if (right) setText(`<span class="ok">正解！</span> ${info.flips}枚。いくつもの向きをいっぺんに返せる場所が、いちばん多く返せます。`);
+    else setText(`<span class="ng">おしい。</span> そこだと${info.flips}枚です。いちばん多いのは${most}枚返せる所でした。`);
+    afterAnswer(right);
+    return;
+  }
+  // いちばん良い手を選ぶ問題
+  await lessonMove(sq, true);
+  if (right) {
+    setText(`<span class="ok">正解！</span> ${esc(goodReason(p, sq))}`);
+    afterAnswer(true);
+    return;
+  }
+  const best = p.mv[p.best];
+  if (info.reply >= 0) {
+    await wait(350);
+    if (L.mode !== 'busy') return;
+    await lessonMove(info.reply, false);
+    ring(info.reply, 'bad', true);
+  }
+  setText(`<span class="ng">ざんねん。</span> ${esc(badReason(p, info, best))}`);
+  afterAnswer(false);
+});
+function lessonPaintKeep(fn) { fn(); }
+
+function goodReason(p, sq) {
+  const i = p.mv[sq];
+  switch (p.ch) {
+    case 2: return '角は二度と返されません。';
+    case 3: return '角の隣に近づかず、白に角を渡しませんでした。';
+    case 4: return `${i.flips}枚だけ返して、白の打てる場所は${i.mob}か所にとどまりました。`;
+    case 5: return `打ったあと、白の打てる場所は${i.mob}か所だけです。`;
+    case 6: return `内側を返す静かな手です。白の打てる場所は${i.mob}か所。`;
+    case 7: return '白に角も割り込みも与えない打ち方です。';
+    case 8: return i.final != null ? `最後まで打つと${fmtD(i.final)}石差。これがいちばん多く勝てる順番です。` : 'いちばん多く勝てる順番です。';
+  }
+  return '';
+}
+function badReason(p, i, best) {
+  if (i.reply >= 0 && isCornerSq(i.reply)) return '白に角を取られます（赤い輪の所）。';
+  if (p.ch === 4 && i.flips > best.flips && i.mob > best.mob) return `${i.flips}枚も返したので、白の打てる場所が${i.mob}か所に増えました（正解なら${best.mob}か所）。`;
+  if ((p.ch === 4 || p.ch === 5 || p.ch === 6) && i.mob > best.mob) return `打ったあと、白は${i.mob}か所に打てます（正解なら${best.mob}か所）。`;
+  if (p.ch === 8 && i.final != null) return `最後まで打つと${fmtD(i.final)}石差。正解なら${fmtD(best.final)}石差でした。`;
+  if (i.reply >= 0) return `白にこう返されて、${Math.round(i.loss)}石ほど損になります（赤い輪が白の手）。`;
+  return `正解より${Math.round(i.loss)}石ほど損になります。`;
+}
+function afterAnswer(right) {
+  L.mode = 'done';
+  if (right) { setBtns([['次へ', lessonNext, true]]); return; }
+  setBtns([
+    ['正解を見る', () => {
+      L.token++;
+      L.b = strBits(L.p.b); lessonPaint();
+      L.p.ans.forEach(x => ring(x, 'mark', true));
+      $('#lessonText').insertAdjacentHTML('beforeend', '<span class="sub">金の輪が正解の場所です。</span>');
+      setBtns([['もう一度解く', () => { L.token++; showProblem(L.p); }], ['次へ', lessonNext, true]]);
+    }],
+    ['もう一度解く', () => { L.token++; showProblem(L.p); }],
+  ]);
+}
+function lessonFinish() {
+  lessonDone[L.ch.id] = true; store.set(K_LES, lessonDone);
+  SFX.win();
+  const next = LESSONS.find(c => c.id === L.ch.id + 1);
+  const w = openSheet(`<h2 class="win" style="font-size:1.8rem;letter-spacing:.1em">${L.ch.id}章 おわり</h2><p class="note">${esc(L.ch.done)}</p>` +
+    `<div class="col">${next ? `<button class="btn main" data-a="next">${next.id}章「${esc(next.title)}」へ</button>` : ''}` +
+    `<button class="btn${next ? '' : ' main'}" data-a="back">${L.from === 'review' ? '振り返りに戻る' : '講座の目次へ'}</button></div>`);
+  w.addEventListener('click', (ev) => {
+    const a = ev.target.closest('[data-a]'); if (!a) return;
+    w.remove();
+    if (a.dataset.a === 'next') openLesson(next.id, L.from);
+    else lessonBack();
+  });
+}
+function lessonBack() {
+  L.token++;
+  if (L.from === 'review') { setTier(R.lv); showScreen('review'); requestAnimationFrame(() => { fit(); showStep(R.k); }); }
+  else openCourse();
+}
+$('#lessonBack').addEventListener('click', lessonBack);
+
+// 振り返りの悪手が、講座のどの章の話かを見分ける（はっきり分かる形だけ）
+function chapterFor(i) {
+  const pos = R.positions[i], sq = R.moves[i], best = R.data[i].best;
+  const emp = 64 - E.pc(pos[0]) - E.pc(pos[1]) - E.pc(pos[2]) - E.pc(pos[3]);
+  if (emp <= 12) return 8;
+  const near = { 9: 0, 14: 7, 49: 56, 54: 63, 1: 0, 8: 0, 6: 7, 15: 7, 48: 56, 57: 56, 55: 63, 62: 63 };
+  if (sq in near) {
+    const cn = near[sq];
+    if (!bit(pos[0], pos[1], cn) && !bit(pos[2], pos[3], cn)) return 3;
+  }
+  if (i + 1 < R.moves.length && R.movers[i + 1] !== R.movers[i] && isCornerSq(R.moves[i + 1]) && !isCornerSq(sq)) return 2;
+  if (best < 0) return null;
+  const nf = E.flipsOf(sq, ...pos).length, bf = E.flipsOf(best, ...pos).length;
+  const after = E.applyMove(...pos, sq), afterB = E.applyMove(...pos, best);
+  const mob = E.movesOf(after[2], after[3], after[0], after[1]).length;
+  const mobB = E.movesOf(afterB[2], afterB[3], afterB[0], afterB[1]).length;
+  if (emp > 20 && nf >= bf + 4) return 4;
+  if (mob >= mobB + 3) return 5;
+  const edge = (s) => (s >> 3) === 0 || (s >> 3) === 7 || (s & 7) === 0 || (s & 7) === 7;
+  if (edge(sq) && !isCornerSq(sq)) return 7;
+  return null;
+}
 
 /* ---------- 起動 ---------- */
 paintSound();

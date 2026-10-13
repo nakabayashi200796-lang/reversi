@@ -611,6 +611,24 @@ function think(pl, ph, ol, oh, lv, opts) {
   return res;
 }
 
+/* ---------- 講座の問題づくり用：すべての手の点数（手番側から見た石差の目安） ---------- */
+function scoreMoves(pl, ph, ol, oh, depth, exactEmpties) {
+  const moves = movesOf(pl, ph, ol, oh);
+  const empties = 64 - pc(pl) - pc(ph) - pc(ol) - pc(oh);
+  const out = {};
+  for (const sq of moves) {
+    const [a, b, c, d] = applyMove(pl, ph, ol, oh, sq);
+    let v;
+    if (empties - 1 <= exactEmpties) v = -solve(c, d, a, b, -65, 65, false, empties - 1, 1);
+    else {
+      v = -search(c, d, a, b, depth - 1, -INF, INF, false, 1);
+      if (v >= WIN - 64) v -= WIN; else if (v <= -WIN + 64) v += WIN;
+    }
+    out[sq] = v;
+  }
+  return out;
+}
+
 /* ---------- 振り返り用：盤面の見立て（手番側から見た点数と、いちばん良い手） ---------- */
 function analyzePosition(pl, ph, ol, oh) {
   genMoves(pl, ph, ol, oh);
@@ -662,7 +680,7 @@ function flipsOf(sq, pl, ph, ol, oh) {
   return out;
 }
 
-const Engine = { setOrderSearch(v) { ORDER_SEARCH = v; }, pc, genMoves, movesOf, flipsOf, applyMove, think, analyzePosition, evaluate, finalScore, solve, search, LEVELS, START, W, ttClear, etClear, get nodes() { return nodes; } };
+const Engine = { setOrderSearch(v) { ORDER_SEARCH = v; }, scoreMoves, pc, genMoves, movesOf, flipsOf, applyMove, think, analyzePosition, evaluate, finalScore, solve, search, LEVELS, START, W, ttClear, etClear, get nodes() { return nodes; } };
 
 /* ---------- Worker として動いているときの受け口 ---------- */
 if (typeof WorkerGlobalScope !== 'undefined' && self instanceof WorkerGlobalScope) {
