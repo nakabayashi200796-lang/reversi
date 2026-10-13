@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>リバーシ</title>
 <link rel="manifest" href="./manifest.webmanifest">
 <meta name="theme-color" content="#0c2a1f">
@@ -41,6 +41,7 @@ body[data-tier="7"] { --bg1: #5a4410; --bg2: #0b0803; --felt1: #208a59; --felt2:
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
 html, body { height: 100%; margin: 0; }
+html { touch-action: manipulation; }
 body {
   background: radial-gradient(120% 80% at 50% 38%, var(--bg1) 0%, var(--bg2) 100%) fixed, var(--bg2);
   color: var(--text);
@@ -102,7 +103,7 @@ button:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
 .ladder { flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; padding-bottom: 4px; -webkit-overflow-scrolling: touch; }
 .rung {
   position: relative; display: grid; grid-template-columns: 34px 1fr auto; align-items: center; gap: 12px;
-  width: 100%; text-align: left; min-height: 62px; padding: 8px 14px 8px 12px;
+  width: 100%; text-align: left; min-height: 54px; padding: 6px 14px 6px 12px;
   border-radius: 12px; border: 1px solid rgba(255,255,255,.08);
   background: linear-gradient(90deg, rgba(0,0,0,.34), rgba(0,0,0,.18));
 }
@@ -117,7 +118,7 @@ button:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
 .rung[data-lv="5"] .nm { color: #bfe6ff; text-shadow: 0 0 12px rgba(60, 160, 255, .6); }
 .rung[data-lv="6"] { border-color: rgba(255, 60, 50, .4); background: linear-gradient(90deg, rgba(70, 6, 8, .85), rgba(0,0,0,.25)); }
 .rung[data-lv="6"] .nm { color: #ffb3a8; text-shadow: 0 0 12px rgba(255, 40, 30, .7); }
-.rung[data-lv="7"] { min-height: 74px; border-color: rgba(255, 215, 110, .55); background: linear-gradient(100deg, rgba(110, 80, 15, .85), rgba(30, 20, 4, .7) 60%, rgba(0,0,0,.3)); }
+.rung[data-lv="7"] { min-height: 60px; border-color: rgba(255, 215, 110, .55); background: linear-gradient(100deg, rgba(110, 80, 15, .85), rgba(30, 20, 4, .7) 60%, rgba(0,0,0,.3)); }
 .rung[data-lv="7"] .nm { font-size: 1.7rem; color: #ffe7a6; text-shadow: 0 0 16px rgba(255, 200, 80, .8); letter-spacing: .3em; }
 .rung[data-lv="4"] .nm { color: #f1e2bd; }
 
@@ -290,7 +291,7 @@ body[data-tier="5"] .frame, body[data-tier="6"] .frame, body[data-tier="7"] .fra
 /* ---------- 講座 ---------- */
 .course-entry {
   display: grid; grid-template-columns: 34px 1fr auto; align-items: center; gap: 12px; width: 100%; text-align: left;
-  min-height: 62px; padding: 8px 14px 8px 12px; margin-top: 8px; border-radius: 12px;
+  min-height: 54px; padding: 6px 14px 6px 12px; margin-top: 6px; border-radius: 12px;
   border: 1px dashed color-mix(in srgb, var(--accent) 55%, transparent); background: rgba(0,0,0,.22);
 }
 .course-entry svg { width: 26px; height: 26px; color: var(--accent); justify-self: center; }
@@ -902,9 +903,8 @@ function renderHome() {
     const r = records[lv];
     const b = document.createElement('button');
     b.className = 'rung'; b.dataset.lv = lv;
-    b.innerHTML = `<span class="lv">${lv}</span><span><span class="nm"></span><span class="ds"></span></span><span class="rec">${r && r.w ? CROWN : ''}<span>${recHtml(lv)}</span></span>`;
+    b.innerHTML = `<span class="lv">${lv}</span><span class="nm"></span><span class="rec">${r && r.w ? CROWN : ''}<span>${recHtml(lv)}</span></span>`;
     b.querySelector('.nm').textContent = LV[lv].name;
-    b.querySelector('.ds').textContent = LV[lv].ds;
     b.setAttribute('aria-label', `Lv${lv} ${LV[lv].name}と対戦する。${recText(lv)}`);
     b.addEventListener('click', () => { audio(); store.del(K_SAVE); startGame(lv); });
     lad.appendChild(b);
@@ -1097,7 +1097,7 @@ function courseEntry() {
   const n = LESSONS.filter(c => lessonDone[c.id]).length;
   const b = document.createElement('button');
   b.className = 'course-entry';
-  b.innerHTML = `${BOOK}<span><span class="nm">リバーシ講座</span><span class="ds">全${LESSONS.length}章。説明を読んで、盤の問題を解く</span></span><span class="rec">${n ? n + '章 済' : 'はじめから'}</span>`;
+  b.innerHTML = `${BOOK}<span class="nm">リバーシ講座</span><span class="rec">${n ? n + '章 済' : 'はじめから'}</span>`;
   b.addEventListener('click', () => { audio(); openCourse(); });
   return b;
 }
@@ -1107,9 +1107,8 @@ function openCourse() {
   const box = $('#chapters'); box.innerHTML = '';
   for (const c of LESSONS) {
     const b = document.createElement('button'); b.className = 'chap';
-    b.innerHTML = `<span class="no">${c.id}</span><span><span class="nm"></span><span class="ds"></span></span>${lessonDone[c.id] ? '<span class="done">済</span>' : '<span></span>'}`;
+    b.innerHTML = `<span class="no">${c.id}</span><span class="nm"></span>${lessonDone[c.id] ? '<span class="done">済</span>' : '<span></span>'}`;
     b.querySelector('.nm').textContent = c.title;
-    b.querySelector('.ds').textContent = CH_DS[c.id] || '';
     b.addEventListener('click', () => { audio(); openLesson(c.id, 'course'); });
     box.appendChild(b);
   }
@@ -1377,6 +1376,10 @@ function chapterFor(i) {
   if (edge(sq) && !isCornerSq(sq)) return 7;
   return null;
 }
+
+/* ---------- 画面の拡大を止める（iPhoneは viewport の指定だけでは止まらない） ---------- */
+for (const t of ['gesturestart', 'gesturechange', 'gestureend']) document.addEventListener(t, (e) => e.preventDefault(), { passive: false });
+document.addEventListener('touchmove', (e) => { if (e.touches.length > 1) e.preventDefault(); }, { passive: false });
 
 /* ---------- 起動 ---------- */
 paintSound();
