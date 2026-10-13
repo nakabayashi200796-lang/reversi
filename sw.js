@@ -1,6 +1,7 @@
 /* リバーシ — 電波が無くても開けるようにするための小さな仕掛け */
-const V = "reversi-v3";
-const SHELL = ["./", "./index.html", "./manifest.webmanifest", "./engine.js", "./lessons.js", "./eval.bin", "./icon-32.png", "./icon-180.png", "./icon-192.png", "./icon-512.png"];
+const V = "reversi-v4";
+const SHELL = ["./", "./index.html", "./manifest.webmanifest", "./engine.js", "./lessons.js", "./eval.bin", "./icon-32.png", "./icon-180.png", "./icon-192.png", "./icon-512.png",
+               "./se/stone_1.mp3", "./se/stone_2.mp3", "./se/stone_3.mp3", "./se/stone_4.mp3", "./se/stone_5.mp3"];
 
 self.addEventListener("install", e => {
   self.skipWaiting();
